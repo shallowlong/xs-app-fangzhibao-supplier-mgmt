@@ -59,11 +59,7 @@ async function closeDBConnection() {
 }
 
 async function initTables() {
-	if (!isProduction) {
-		await sequelize.sync({ alter: true });
-	} else {
-		await sequelize.sync();
-	}
+	await sequelize.sync({ alter: !isProduction, force: false });
 }
 
 async function initUser() {
