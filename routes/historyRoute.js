@@ -10,7 +10,7 @@ const supplierService = require("../services/supplierService");
  * @route GET /history
  * @description 供应商操作历史记录页面
  */
-router.get("/", authToken, (req, res) => {
+router.get("/", authToken, async (req, res) => {
 	res.render("history");
 });
 

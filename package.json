@@ -4,7 +4,7 @@
 	"private": true,
 	"scripts": {
 		"start": "node ./bin/www.js",
-		"zip": "node zip.js"
+		"build": "node build.js"
 	},
 	"author": "xishu2099 <shallowlong@gmail.com>",
 	"license": "MIT",

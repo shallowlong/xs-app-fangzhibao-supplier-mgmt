@@ -6,5 +6,6 @@
 	"objectWrap": "preserve",
 	"bracketSameLine": true,
 	"arrowParens": "always",
-	"vueIndentScriptAndStyle": true
+	"vueIndentScriptAndStyle": true,
+	"htmlWhitespaceSensitivity": "ignore"
 }

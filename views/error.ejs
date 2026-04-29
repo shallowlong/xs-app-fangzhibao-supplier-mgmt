@@ -1,0 +1,18 @@
+<%- include('header', {addCss: ["main"]}) -%>
+
+<%- include('page-header') -%>
+
+<div class="container">
+	<div class="header">
+		<h1>错误名称：<%= message %></h1>
+	</div>
+	<div class="content"></div>
+		<% if (error) { %>
+		<h2>状态码：<%= error.status %></h2>
+		<pre>错误技术栈：<%= error.stack %></pre>
+		<% } %>
+		<p><a href="/">返回首页</a></p>
+	</div>
+</div>
+
+<%- include('footer') -%>

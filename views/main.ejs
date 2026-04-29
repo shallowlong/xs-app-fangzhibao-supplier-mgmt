@@ -1,15 +1,7 @@
-<%- include('header.html', {addCss: ["main"]}) -%>
+<%- include('header', {addCss: ["main"]}) -%>
 
 <div class="container">
-	<div class="page-header">
-		<h1>纺支宝ERP供货商管理LegacyWebApp</h1>
-		<% if (!isProduction) { %>
-		<span class="dev-badge">DEV</span>
-		<% } %>
-		<p class="lead text-muted">查看合作供应商的哪些信息发生了变化</p>
-	</div>
-
-	<hr class="my-4" />
+	<%- include('page-header') -%>
 
 	<div class="row">
 		<div class="col-md-8">
@@ -197,14 +189,15 @@
 					</tr>
 				</thead>
 				<tbody>
-					<% if (suppliers) { %> <%
-					suppliers.forEach(function(supplier){ %> <%-
-					include('row.html', {supplier: supplier}) -%> <% }); %> <% }
-					%>
+					<% if (suppliers) { %> 
+						<% suppliers.forEach(function(supplier){ %> 
+							<%- include('row', {supplier: supplier}) -%>
+						<% }); %>
+					<% } %>
 				</tbody>
 			</table>
 		</div>
 	</div>
 </div>
 
-<%- include('footer.html', {addJs: ['main']}) -%>
+<%- include('footer', {addJs: ['main']}) -%>

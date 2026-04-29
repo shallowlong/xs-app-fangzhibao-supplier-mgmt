@@ -1,7 +1,5 @@
 const { logger } = require("../logger");
-
 const jwt = require("jsonwebtoken");
-
 const express = require("express");
 const rateLimit = require("express-rate-limit");
 const router = express.Router();
@@ -14,7 +12,8 @@ const captchaLimiter = rateLimit({
 	validate: { trustProxy: true },
 });
 
-router.get("/", (req, res, next) => {
+router.get("/", async (req, res, next) => {
+	logger.info("login page visited");
 	const { code, svg } = generateCaptcha();
 
 	setupCaptchaInSession(req, code);

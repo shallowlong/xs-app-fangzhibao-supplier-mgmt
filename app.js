@@ -15,13 +15,9 @@ const sessionStore = new MySQLStore({}, customConnectionPool);
 const isProduction = process.env.NODE_ENV === "production";
 
 const app = express();
-
-// 使用ejs作为模板引擎，并将文件扩展名设置为.html
-app.engine(".html", require("ejs").__express);
+app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
-app.set("view engine", "html");
-app.set("trust proxy", true);
-
+isProduction && app.set("trust proxy", 1);
 app.use(morgan(process.env.MORGAN_OPTION, { stream: morganStream }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -52,10 +48,8 @@ app.use((req, res, next) => {
 });
 
 const mainRoute = require("./routes/mainRoute");
-const apiRoute = require("./routes/apiRoute");
 const loginRoute = require("./routes/loginRoute");
 const historyRoute = require("./routes/historyRoute");
-app.use("/api", apiRoute);
 app.use("/login", loginRoute);
 app.use("/history", historyRoute);
 app.use("/", mainRoute);

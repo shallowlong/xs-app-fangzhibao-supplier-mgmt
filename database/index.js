@@ -82,10 +82,6 @@ db.models.SupplierSheet = require("./models/SupplierSheet")(
 	sequelize,
 	Sequelize.DataTypes,
 );
-db.models.ApiToken = require("./models/ApiToken")(
-	sequelize,
-	Sequelize.DataTypes,
-);
 db.models.SupplierStoreHistory = require("./models/SupplierStoreHistory")(
 	sequelize,
 	Sequelize.DataTypes,
@@ -94,7 +90,6 @@ db.models.SupplierStoreHistory = require("./models/SupplierStoreHistory")(
 db.User = db.models.User;
 db.SupplierStore = db.models.SupplierStore;
 db.SupplierSheet = db.models.SupplierSheet;
-db.ApiToken = db.models.ApiToken;
 db.SupplierStoreHistory = db.models.SupplierStoreHistory;
 db.closeCustomConnectionPool = closeCustomConnectionPool;
 db.closeDBConnection = closeDBConnection;

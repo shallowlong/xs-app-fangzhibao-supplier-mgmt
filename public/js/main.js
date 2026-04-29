@@ -4,7 +4,6 @@ $(document).ready(function () {
 	const uploadMessage = $("#uploadMessage");
 	const spinnerContainer = $(".spinner-container");
 
-	// 页面加载时获取供应商统计数据
 	loadSupplierStatistics();
 
 	uploadArea.click(function (e) {
