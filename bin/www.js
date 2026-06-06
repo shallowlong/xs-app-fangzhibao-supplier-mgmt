@@ -30,14 +30,12 @@ function onError(error) {
 	switch (error.code) {
 		case "EACCES":
 			logger.error(bind + " requires elevated privileges");
-			feishuUtil.error(`服务器启动失败: ${bind} 需要提升权限`);
+			feishuUtil.warn(`服务器启动失败: ${bind} 需要提升权限`);
 			process.exit(1);
-			break;
 		case "EADDRINUSE":
 			logger.error(bind + " is already in use");
-			feishuUtil.error(`服务器启动失败: ${bind} 端口已被占用`);
+			feishuUtil.warn(`服务器启动失败: ${bind} 端口已被占用`);
 			process.exit(1);
-			break;
 		default:
 			throw error;
 	}
@@ -47,12 +45,12 @@ function onListening() {
 	let addr = server.address();
 	let bind = typeof addr === "string" ? "pipe " + addr : "port " + addr.port;
 	logger.info(">>>> HTTP server is listening on " + bind);
-	feishuUtil.info(`纺支宝供应商管理系统启动成功，监听端口: ${bind}`);
+	feishuUtil.warn(`纺支宝供应商管理系统启动成功，监听端口: ${bind}`);
 }
 
 async function cleanup() {
 	logger.info(">>>> closing 2 database connections...");
-	feishuUtil.info("纺支宝供应商管理系统正在关闭...");
+	feishuUtil.notify("纺支宝供应商管理系统正在关闭...");
 	await closeCustomConnectionPool();
 	await closeDBConnection();
 
@@ -63,11 +61,9 @@ async function cleanup() {
 				err,
 				"##### fail to close the HTTP server, exit with code 1",
 			);
-			feishuUtil.error(`服务器关闭失败: ${err.message}`);
 			process.exit(1);
 		}
 		logger.info("<<<< HTTP server closed, exit with code 0");
-		feishuUtil.info("纺支宝供应商管理系统已正常关闭");
 		process.exit(0);
 	});
 }
@@ -78,12 +74,10 @@ process.on("SIGTERM", cleanup);
 // 处理未捕获的异常
 process.on("uncaughtException", (err) => {
 	logger.error(err, "###### uncaughtException, exit with code 1:");
-	feishuUtil.error(`未捕获的异常: ${err.message}`);
 	cleanup().then(() => process.exit(1));
 });
 // 处理未捕获的Promise拒绝
 process.on("unhandledRejection", (reason) => {
 	logger.error(reason, "###### unhandledRejection, exit with code 1:");
-	feishuUtil.error(`未处理的Promise拒绝: ${reason}`);
 	cleanup().then(() => process.exit(1));
 });
