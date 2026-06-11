@@ -4,6 +4,9 @@ const path = require("path");
 const isProduction = process.env.NODE_ENV === "production";
 const logLevel = isProduction ? "info" : "debug";
 
+// 缓存 PID，避免重复获取
+const PID = process.pid;
+
 function ensureLogDir() {
 	const logDir = path.join(__dirname, "logs");
 	if (!existsSync(logDir)) {
@@ -41,8 +44,8 @@ function createWinstonLogger() {
 					winston.format.colorize(),
 					winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
 					winston.format.printf(
-						({ level, message, timestamp, ...metadata }) => {
-							let msg = `${timestamp} [${level}]: ${message}`;
+						({ level, message, timestamp, pid, ...metadata }) => {
+							let msg = `${timestamp} [${level}] [PID:${pid || PID}]: ${message}`;
 							if (Object.keys(metadata).length > 0) {
 								msg += ` ${JSON.stringify(metadata)}`;
 							}
@@ -58,6 +61,8 @@ function createWinstonLogger() {
 		level: logLevel,
 		transports: transports,
 		exitOnError: false,
+		// 使用 defaultMeta 添加 PID，性能更好
+		defaultMeta: { pid: PID },
 	});
 
 	return logger;

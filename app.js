@@ -13,6 +13,7 @@ const { customConnectionPool } = require("./database");
 const sessionStore = new MySQLStore({}, customConnectionPool);
 
 const isProduction = process.env.NODE_ENV === "production";
+const { getCurrentVersion } = require("./common/version");
 
 const app = express();
 app.set("view engine", "ejs");
@@ -44,6 +45,7 @@ app.use(
 );
 app.use((req, res, next) => {
 	res.locals.isProduction = isProduction;
+	res.locals.currentVersion = getCurrentVersion();
 	next();
 });
 
