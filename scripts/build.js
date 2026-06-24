@@ -1,44 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const archiver = require("archiver");
-const {
-	getCurrentVersion,
-	incrementVersion,
-	updatePackageVersion,
-} = require("../common/version.js");
-
-/**
- * 获取命令行参数中的版本更新级别
- * @returns {string|null} 版本更新级别: 'patch' | 'minor' | 'major' | null(不更新)
- */
-function getVersionLevel() {
-	const args = process.argv.slice(2);
-	if (args.includes("major")) return "major";
-	if (args.includes("minor")) return "minor";
-	return "patch";
-}
-
-/**
- * 更新版本号
- * @returns {Object} 包含旧版本、新版本和是否更新的对象
- */
-function bumpVersion() {
-	const level = getVersionLevel();
-	const currentVersion = getCurrentVersion();
-	const newVersion = incrementVersion(currentVersion, level);
-
-	console.log(`📦 版本更新级别: ${level}`);
-	console.log(`📌 当前版本: ${currentVersion}`);
-	console.log(`🆕 新版本: ${newVersion}`);
-
-	if (updatePackageVersion(newVersion)) {
-		console.log(`✅ 版本号已更新到 ${newVersion}`);
-		return { oldVersion: currentVersion, newVersion, level, updated: true };
-	} else {
-		console.error("❌ 版本号更新失败");
-		process.exit(1);
-	}
-}
+const { getCurrentVersion } = require("../common/version.js");
 
 const filesToZip = [
 	"bin/",
@@ -137,23 +100,15 @@ async function main() {
 			process.exit(1);
 		}
 
-		// 更新版本号（可选）
-		const { oldVersion, newVersion, level, updated } = bumpVersion();
+		const version = getCurrentVersion();
+		console.log(`📌 当前版本: ${version}\n`);
 
-		console.log("\n📦 开始创建压缩包...\n");
+		console.log("📦 开始创建压缩包...\n");
 
-		// 创建 zip 包（使用当前版本或新版本）
-		await createZip(newVersion);
+		// 创建 zip 包
+		await createZip(version);
 
 		console.log("\n✨ 打包成功！");
-		if (updated) {
-			console.log(`\n📋 -- 版本更新摘要 --`);
-			console.log(`   更新级别: ${level}`);
-			console.log(`   旧版本: ${oldVersion}`);
-			console.log(`   新版本: ${newVersion}`);
-		} else {
-			console.log(`\n📋 版本: ${newVersion}`);
-		}
 	} catch (error) {
 		console.error("\n❌ 打包失败:", error.message);
 		process.exit(1);

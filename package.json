@@ -5,8 +5,7 @@
 	"scripts": {
 		"start": "node ./bin/www.js",
 		"build": "node ./scripts/build.js",
-		"build:minor": "node ./scripts/build.js minor",
-		"build:major": "node ./scripts/build.js major"
+		"postversion": "node ./scripts/build.js"
 	},
 	"author": "xishu2099 <shallowlong@gmail.com>",
 	"license": "MIT",
