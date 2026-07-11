@@ -24,7 +24,7 @@
 		"express-session": "^1.18.2",
 		"http-errors": "~1.6.3",
 		"jsonwebtoken": "^9.0.2",
-		"morgan": "~1.10.1",
+		"morgan": "~1.11.0",
 		"mysql2": "^3.22.5",
 		"sequelize": "^6.37.8",
 		"underscore": "^1.13.7",
