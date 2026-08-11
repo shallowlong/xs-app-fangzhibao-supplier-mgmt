@@ -1,0 +1,75 @@
+name: Build, Release and FTP Upload
+
+on:
+    push:
+        tags:
+            - "v*"
+
+permissions:
+    contents: write
+
+jobs:
+    build-release-upload:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v6
+              with:
+                  submodules: recursive
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v6
+              with:
+                  node-version: "lts/*"
+                  cache: "npm"
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Build release zip
+              id: build
+              run: npm run build
+
+            - name: Get package version and zip info
+              id: package
+              run: |
+                  VERSION=$(node -p "require('./package.json').version")
+                  ZIP_PATH=$(ls dist/fangzhibao-supplier-mgmt-*.zip | head -n 1)
+                  ZIP_NAME=$(basename "$ZIP_PATH")
+
+                  echo "version=$VERSION" >> $GITHUB_OUTPUT
+                  echo "zip_path=$ZIP_PATH" >> $GITHUB_OUTPUT
+                  echo "zip_name=$ZIP_NAME" >> $GITHUB_OUTPUT
+
+                  echo "Package version: $VERSION"
+                  echo "Generated zip: $ZIP_NAME"
+
+            - name: Create GitHub Release and upload zip
+              uses: softprops/action-gh-release@v3
+              with:
+                  tag_name: ${{ github.ref_name }}
+                  name: xs-app-fangzhibao-supplier-mgmt ${{ github.ref_name }}
+                  files: ${{ steps.package.outputs.zip_path }}
+                  generate_release_notes: true
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Upload zip via FTP
+              run: |
+                  TARGET_DIR="${{ secrets.FTP_TARGET_DIR }}"
+
+                  if [[ -n "$TARGET_DIR" ]]; then
+                    TARGET_DIR="${TARGET_DIR#/}"
+                    if [[ "$TARGET_DIR" != */ ]]; then
+                      TARGET_DIR="${TARGET_DIR}/"
+                    fi
+                  fi
+
+                  FTP_URL="ftp://${{ secrets.FTP_SERVER }}/${TARGET_DIR}${{ steps.package.outputs.zip_name }}"
+
+                  echo "Uploading ${{ steps.package.outputs.zip_name }} to FTP server..."
+                  echo "Target URL: ftp://${{ secrets.FTP_SERVER }}/${TARGET_DIR}${{ steps.package.outputs.zip_name }}"
+                  curl -v -T "${{ steps.package.outputs.zip_path }}" \
+                    "$FTP_URL" \
+                    --user "${{ secrets.FTP_USERNAME }}:${{ secrets.FTP_PASSWORD }}"
