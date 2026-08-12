@@ -6,10 +6,10 @@ const session = require("express-session");
 const fileUpload = require("express-fileupload");
 const cookieParser = require("cookie-parser");
 const morgan = require("morgan");
-const { morganStream } = require("./logger");
+const { logger, morganStream } = require("./logger");
 
 const MySQLStore = require("express-mysql-session")(session);
-const { customConnectionPool } = require("./database");
+const { customConnectionPool, initDatabase } = require("./database");
 const sessionStore = new MySQLStore({}, customConnectionPool);
 
 const isProduction = process.env.NODE_ENV === "production";
@@ -63,14 +63,22 @@ app.use(function (req, res, next) {
 
 // error handler
 app.use(function (err, req, res, next) {
-	// set locals, only providing error in development
 	res.locals.isProduction = isProduction;
 	res.locals.message = err.message;
 	res.locals.error = !isProduction ? err : {};
 
-	// render the error page
 	res.status(err.status || 500);
 	res.render("error");
 });
+
+// ===================== 异步初始化 =====================
+
+async function initApp() {
+	await initDatabase();
+	const version = getCurrentVersion();
+	logger.info(`>>>> app initialized, version: v${version}`);
+}
+
+app.initApp = initApp;
 
 module.exports = app;

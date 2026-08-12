@@ -1,10 +1,11 @@
-const mysql = require("mysql2/promise");
-const { Sequelize } = require("sequelize");
-
 const { dbConfig, customPoolConfig } = require("./config");
-const customConnectionPool = mysql.createPool(customPoolConfig);
+const { logger } = require("../logger");
 
 const isProduction = process.env.NODE_ENV === "production";
+
+const mysql = require("mysql2/promise");
+const { Sequelize } = require("sequelize");
+const customConnectionPool = mysql.createPool(customPoolConfig);
 
 const sequelize = new Sequelize(
 	dbConfig.database,
@@ -19,60 +20,8 @@ const db = {
 	models: {},
 };
 
-let logger;
-setTimeout(() => {
-	logger = require("../logger").logger;
-}, 0);
+// ==================== 模型加载（顶层同步，无需异步） ====================
 
-/**
- * 关闭自定义连接池
- * @returns {Promise<void>} - 无返回值
- */
-async function closeCustomConnectionPool() {
-	try {
-		await customConnectionPool.end();
-		logger?.info(">>>> the custom connection pool has been closed");
-	} catch (err) {
-		logger?.error(err, "###### fail to close the custom connection pool");
-	}
-}
-
-async function testDBConnection() {
-	try {
-		await sequelize.authenticate();
-		logger?.info(">>>> sequelize database connection is successful");
-	} catch (error) {
-		logger?.error(error, "###### sequelize database connection failed");
-	}
-}
-
-async function closeDBConnection() {
-	try {
-		await sequelize.close();
-		logger?.info(">>>> sequelize database connection has been closed");
-	} catch (error) {
-		logger?.error(
-			error,
-			"###### fail to close the sequelize database connection",
-		);
-	}
-}
-
-async function initTables() {
-	await sequelize.sync({ alter: !isProduction, force: false });
-}
-
-async function initUser() {
-	const userModel = db.models.User;
-	await userModel.findOrCreate({
-		where: { username: process.env.DB_DEFAULT_USER },
-		defaults: {
-			password: process.env.DB_DEFAULT_PASS,
-		},
-	});
-}
-
-// 加载所有模型
 db.models.User = require("./models/User")(sequelize, Sequelize.DataTypes);
 db.models.SupplierStore = require("./models/SupplierStore")(
 	sequelize,
@@ -91,11 +40,58 @@ db.User = db.models.User;
 db.SupplierStore = db.models.SupplierStore;
 db.SupplierSheet = db.models.SupplierSheet;
 db.SupplierStoreHistory = db.models.SupplierStoreHistory;
+
+// ==================== 数据库连接管理 ====================
+
+function testDBConnection() {
+	return sequelize.authenticate();
+}
+
+function closeCustomConnectionPool() {
+	return customConnectionPool.end();
+}
+
+function closeDBConnection() {
+	return sequelize.close();
+}
+
+// ===================== 表同步与用户初始化 =====================
+
+function syncModels() {
+	return sequelize.sync({ alter: !isProduction, force: false });
+}
+
+function initUser() {
+	const userModel = db.models.User;
+	return userModel.findOrCreate({
+		where: { username: process.env.DB_DEFAULT_USER },
+		defaults: {
+			password: process.env.DB_DEFAULT_PASS,
+		},
+	});
+}
+
+// ===================== 异步初始化 =====================
+
+async function initDatabase() {
+	logger.info(">>> testDBConnection");
+	await testDBConnection();
+	logger.info(">>>> sequelize database connection is successful");
+
+	logger.info(">>> syncModels");
+	await syncModels();
+
+	logger.info(">>> initUser");
+	await initUser();
+
+	logger.info(">>>> database initialized");
+}
+
+db.testDBConnection = testDBConnection;
 db.closeCustomConnectionPool = closeCustomConnectionPool;
 db.closeDBConnection = closeDBConnection;
-
-setTimeout(() => {
-	testDBConnection().then(() => initTables().then(() => initUser()));
-}, 0);
+db.syncModels = syncModels;
+db.initUser = initUser;
+db.initDatabase = initDatabase;
 
 module.exports = db;

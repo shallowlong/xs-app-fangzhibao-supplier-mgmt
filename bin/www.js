@@ -16,21 +16,36 @@ const {
 	setupProcessHandlers,
 } = require("./startup");
 
-const APP_NAME = "纺支宝供应商管理系统";
+const APP_NAME = "纺支宝ERP——供货商管理";
 
 const startTime = startupLog(APP_NAME);
 const version = getCurrentVersion();
 
 const server = http.createServer(app);
 const port = normalizePort(process.env.PORT || "3000");
+let hasListened = false;
 
 server.on("error", function (error) {
 	onServerError(error, port);
 });
 
 server.on("listening", function () {
+	if (hasListened) {
+		logger.warn("#### listening 事件重复触发");
+		return;
+	}
+	hasListened = true;
+
 	logListening(server, version, startTime, APP_NAME);
-	logInitComplete(version, startTime, APP_NAME);
+
+	app.initApp()
+		.then(function () {
+			logInitComplete(version, startTime, APP_NAME);
+		})
+		.catch(function (err) {
+			const { logger } = require("../logger");
+			logger.error(err, "##### initApp 未预期失败");
+		});
 });
 
 server.listen(port);
