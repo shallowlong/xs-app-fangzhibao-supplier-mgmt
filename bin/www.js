@@ -5,6 +5,7 @@ const http = require("http");
 
 const { getCurrentVersion } = require("../common/version");
 const { closeCustomConnectionPool, closeDBConnection } = require("../database");
+const { logger } = require("../logger");
 
 const {
 	normalizePort,
@@ -23,32 +24,24 @@ const version = getCurrentVersion();
 
 const server = http.createServer(app);
 const port = normalizePort(process.env.PORT || "3000");
-let hasListened = false;
 
 server.on("error", function (error) {
 	onServerError(error, port);
 });
 
 server.on("listening", function () {
-	if (hasListened) {
-		logger.warn("#### listening 事件重复触发");
-		return;
-	}
-	hasListened = true;
-
 	logListening(server, version, startTime, APP_NAME);
-
-	app.initApp()
-		.then(function () {
-			logInitComplete(version, startTime, APP_NAME);
-		})
-		.catch(function (err) {
-			const { logger } = require("../logger");
-			logger.error(err, "##### initApp 未预期失败");
-		});
 });
 
 server.listen(port);
+
+app.initApp()
+	.then(function () {
+		logInitComplete(version, startTime, APP_NAME);
+	})
+	.catch(function (err) {
+		logger.error(err, "##### initApp 未预期失败");
+	});
 
 const closeFns = [
 	{ name: "自定义连接池", fn: closeCustomConnectionPool },
